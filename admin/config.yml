@@ -1,0 +1,89 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "configuracion"
+    label: "Configuración del Sitio"
+    files:
+      - name: "hero"
+        label: "Sección Inicio"
+        file: "content/hero.json"
+        fields:
+          - {label: "Título", name: "title", widget: "string"}
+          - {label: "Versículo", name: "verse", widget: "text"}
+          - {label: "Referencia", name: "verseRef", widget: "string"}
+          - {label: "Descripción", name: "description", widget: "text"}
+      
+      - name: "anemiren"
+        label: "Ane Miren"
+        file: "content/anemiren.json"
+        fields:
+          - {label: "Título", name: "title", widget: "string"}
+          - {label: "Subtítulo", name: "subtitle", widget: "string"}
+          - {label: "Descripción", name: "description", widget: "text"}
+          - {label: "Foto URL", name: "photoUrl", widget: "image"}
+          - label: "Características"
+            name: "features"
+            widget: "list"
+            fields:
+              - {label: "Icono", name: "icon", widget: "string"}
+              - {label: "Título", name: "title", widget: "string"}
+              - {label: "Descripción", name: "description", widget: "text"}
+
+  - name: "fortalezas"
+    label: "Fortalezas"
+    folder: "content/fortalezas"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - {label: "Título", name: "title", widget: "string"}
+      - {label: "Descripción", name: "description", widget: "text"}
+      - {label: "Icono", name: "icon", widget: "string"}
+      - {label: "Versículo", name: "verse", widget: "text"}
+      - label: "Documentos"
+        name: "documents"
+        widget: "list"
+        required: false
+        fields:
+          - {label: "Nombre", name: "name", widget: "string"}
+          - {label: "URL", name: "url", widget: "file"}
+
+  - name: "servicios"
+    label: "Servicios"
+    folder: "content/servicios"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - {label: "Título", name: "title", widget: "string"}
+      - {label: "Descripción", name: "description", widget: "text"}
+      - {label: "Icono", name: "icon", widget: "string"}
+      - {label: "Detalles", name: "details", widget: "text"}
+      - label: "Documentos"
+        name: "documents"
+        widget: "list"
+        required: false
+        fields:
+          - {label: "Nombre", name: "name", widget: "string"}
+          - {label: "URL", name: "url", widget: "file"}
+
+  - name: "especialidades"
+    label: "Especialidades"
+    folder: "content/especialidades"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - {label: "Título", name: "title", widget: "string"}
+      - {label: "Descripción", name: "description", widget: "text"}
+      - {label: "Icono", name: "icon", widget: "string"}
+      - {label: "Detalles", name: "details", widget: "text"}
+      - label: "Documentos"
+        name: "documents"
+        widget: "list"
+        required: false
+        fields:
+          - {label: "Nombre", name: "name", widget: "string"}
+          - {label: "URL", name: "url", widget: "file"}

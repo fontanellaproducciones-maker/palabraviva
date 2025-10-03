@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Palabra Viva - Teatro Bíblico</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .bg-gradient-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+        .uploading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen bg-gradient-custom">
+        <!-- Login Modal -->
+        <div id="login-modal" class="fixed inset-0 bg-black/50 z-60 flex items-center justify-center p-4" style="display: none;">
+            <div class="bg-white rounded-lg max-w-md w-full p-6">
+                <h3 class="text-xl font-bold mb-4 text-center">Acceso de Administrador</h3>
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Contraseña:</label>
+                    <input type="password" id="admin-password" class="w-full p-3 border rounded focus:border-purple-500">
+                </div>
+                <div class="flex gap-3">
+                    <button id="login-btn" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 flex-1">Ingresar</button>
+                    <button id="cancel-login-btn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 flex-1">Cancelar</button>
+                </div>
+                <div id="login-error" class="mt-3 text-red-500 text-sm text-center" style="display: none;">Contraseña incorrecta</div>
+            </div>
+        </div>
+
+        <!-- Edit Hero Modal -->
+        <div id="edit-hero-modal" class="fixed inset-0 bg-black/50 z-60 flex items-center justify-center p-4" style="display: none;">
+            <div class="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+                <h3 class="text-xl font-bold mb-4">Editar Sección Principal</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Título Principal:</label>
+                        <input type="text" id="edit-hero-title" class="w-full p-3 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Versículo:</label>
+                        <textarea id="edit-hero-verse" class="w-full p-3 border rounded h-20"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Referencia del Versículo:</label>
+                        <input type="text" id="edit-hero-verse-ref" class="w-full p-3 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Descripción:</label>
+                        <textarea id="edit-hero-description" class="w-full p-3 border rounded h-24"></textarea>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button id="save-hero-btn" class="bg-green-500 text-white px-4 py-2 rounded flex-1">Guardar</button>
+                    <button id="cancel-hero-btn" class="bg-gray-500 text-white px-4 py-2 rounded flex-1">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Ane Miren Modal -->
+        <div id="edit-anemiren-modal" class="fixed inset-0 bg-black/50 z-60 flex items-center justify-center p-4" style="display: none;">
+            <div class="bg-white rounded-lg max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto">
+                <h3 class="text-xl font-bold mb-4">Editar Información de Ane Miren</h3>
+                
+                <div class="mb-6 p-4 bg-blue-50 rounded">
+                    <h4 class="text-lg font-bold mb-4">Información Principal</h4>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold mb-2">Título:</label>
+                            <input type="text" id="edit-am-title" class="w-full p-3 border rounded">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-2">Subtítulo:</label>
+                            <input type="text" id="edit-am-subtitle" class="w-full p-3 border rounded">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-2">Descripción:</label>
+                            <textarea id="edit-am-description" class="w-full p-3 border rounded h-20"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6 p-4 bg-gray-50 rounded">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-lg font-bold">Características</h4>
+                        <button id="add-am-feature-btn" class="bg-green-500 text-white px-3 py-1 rounded text-sm">Agregar</button>
+                    </div>
+                    <div id="am-features-container" class="space-y-4"></div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button id="save-anemiren-btn" class="bg-green-500 text-white px-4 py-2 rounded flex-1">Guardar</button>
+                    <button id="cancel-anemiren-btn" class="bg-gray-500 text-white px-4 py-2 rounded flex-1">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div id="edit-modal" class="fixed inset-0 bg-black/50 z-60 flex items-center justify-center p-4" style="display: none;">
+            <div class="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+                <h3 class="text-xl font-bold mb-4">Editar Elemento</h3>
+                <form id="edit-form">
+                    <div class="mb-4">
+                        <label class="block text-sm font-bold mb-2">Icono:</label>
+                        <input type="text" id="edit-icon" class="w-full p-3 border rounded">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-bold mb-2">Título:</label>
+                        <input type="text" id="edit-title" class="w-full p-3 border rounded" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-bold mb-2">Descripción:</label>
+                        <textarea id="edit-description" class="w-full p-3 border rounded h-20" required></textarea>
+                    </div>
+                    <div class="mb-4" id="edit-verse-container">
+                        <label class="block text-sm font-bold mb-2">Versículo:</label>
+                        <textarea id="edit-verse" class="w-full p-3 border rounded h-16"></textarea>
+                    </div>
+                    <div class="mb-4" id="edit-details-container">
+                        <label class="block text-sm font-bold mb-2">Detalles:</label>
+                        <textarea id="edit-details" class="w-full p-3 border rounded h-16"></textarea>
+                    </div>
+                    <div class="flex gap-3">
+                        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded flex-1">Guardar</button>
+                        <button type="button" id="cancel-edit-btn" class="bg-gray-500 text-white px-4 py-2 rounded flex-1">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- CMS Toolbar -->
+        <div id="cms-toolbar" class="fixed top-0 left-0 right-0 z-50 bg-purple-600 text-white p-4 shadow-lg" style="display: none;">
+            <div class="max-w-6xl mx-auto flex justify-between items-center flex-wrap gap-3">
+                <div class="flex items-center gap-4">
+                    <h1 class="text-xl font-bold">CMS Palabra Viva</h1>
+                    <span class="px-3 py-1 bg-green-500 rounded-full text-sm">Cloudinary</span>
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                    <button id="edit-hero-btn" class="bg-orange-500 px-3 py-2 rounded text-sm">Editar Inicio</button>
+                    <button id="add-fortaleza-btn" class="bg-blue-500 px-3 py-2 rounded text-sm">+ Fortaleza</button>
+                    <button id="add-service-btn" class="bg-blue-500 px-3 py-2 rounded text-sm">+ Servicio</button>
+                    <button id="add-specialty-btn" class="bg-blue-500 px-3 py-2 rounded text-sm">+ Especialidad</button>
+                    <button id="edit-anemiren-btn" class="bg-orange-500 px-3 py-2 rounded text-sm">Editar Ane Miren</button>
+                    <button id="save-all-btn" class="bg-green-500 px-4 py-2 rounded text-sm font-bold">💾 Guardar Cambios</button>
+                    <button id="export-btn" class="bg-purple-500 px-3 py-2 rounded text-sm">Exportar</button>
+                    <button id="import-btn" class="bg-purple-500 px-3 py-2 rounded text-sm">Importar</button>
+                    <button id="test-system-btn" class="bg-yellow-500 px-3 py-2 rounded text-sm">Test</button>
+                    <button id="cancel-btn" class="bg-red-500 px-3 py-2 rounded text-sm">Salir</button>
+                </div>
+            </div>
+            <div id="notification" class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-white text-gray-800 px-4 py-2 rounded shadow-lg" style="display: none;"></div>
+        </div>
+
+        <!-- Header -->
+        <header class="bg-white/98 shadow-lg sticky top-0 z-30 border-b-4 border-purple-500">
+            <div class="max-w-6xl mx-auto px-4 py-4">
+                <nav class="flex justify-between items-center flex-wrap gap-4">
+                    <div class="flex items-center gap-4">
+                        <span class="text-4xl">🎭</span>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Palabra Viva</h1>
+                            <p class="text-sm text-gray-600 italic">Teatro Bíblico Transformador</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 items-center flex-wrap">
+                        <a href="#inicio" class="text-gray-600 hover:text-purple-600">Inicio</a>
+                        <a href="#fortalezas" class="text-gray-600 hover:text-purple-600">Fortalezas</a>
+                        <a href="#servicios" class="text-gray-600 hover:text-purple-600">Servicios</a>
+                        <a href="#especialidades" class="text-gray-600 hover:text-purple-600">Especialidades</a>
+                        <a href="tel:+34600627593" class="bg-pink-500 text-white px-4 py-2 rounded-full">Contactar</a>
+                        <button id="edit-mode-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Editar</button>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Hero -->
+        <section class="py-20 text-white text-center" id="inicio">
+            <div class="max-w-4xl mx-auto px-4">
+                <h1 id="hero-title" class="text-6xl font-bold mb-6">Palabra Viva</h1>
+                <div class="bg-white/10 rounded-2xl p-8 mb-8 border border-white/20">
+                    <p id="hero-verse" class="text-2xl italic mb-2">"La Palabra se hizo carne y habitó entre nosotros"</p>
+                    <p id="hero-verse-ref" class="text-lg opacity-80">- Juan 1:14</p>
+                </div>
+                <p id="hero-description" class="text-xl mb-8 opacity-90">Teatro Bíblico que transforma corazones, construye comunidad y hace que la Palabra de Dios sea verdaderamente viva</p>
+                <div class="flex gap-4 justify-center flex-wrap">
+                    <a href="tel:+34600627593" class="bg-green-500 text-white px-6 py-3 rounded-full">Llamar a Ane Miren</a>
+                    <a href="mailto:fontanellaproducciones@gmail.com" class="bg-white/20 text-white px-6 py-3 rounded-full">Enviar Email</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ane Miren Section -->
+        <section class="py-20 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="text-center">
+                        <div class="w-80 h-80 mx-auto rounded-full overflow-hidden border-4 border-white/80 shadow-xl mb-4">
+                            <img id="ane-miren-photo" src="https://i.postimg.cc/DfQ2cLX8/2025-09-21-20-06-48.jpg" alt="Ane Miren Lafuente" class="w-full h-full object-cover">
+                        </div>
+                        <button id="change-photo-btn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" style="display: none;">Cambiar Foto</button>
+                    </div>
+                    <div>
+                        <h2 id="am-title" class="text-5xl font-bold mb-4">Ane Miren Lafuente</h2>
+                        <p id="am-subtitle" class="text-xl italic mb-6 opacity-90">Facilitadora Especializada en Teatro Bíblico para la Nueva Evangelización</p>
+                        <p id="am-description" class="text-lg leading-relaxed mb-8">Ane Miren aporta al proyecto "Palabra Viva" una combinación única de formación teatral profesional y profunda experiencia en evangelización.</p>
+                        <div id="am-features-grid" class="grid grid-cols-2 gap-4 mb-8"></div>
+                        <div class="flex gap-4">
+                            <a href="tel:+34600627593" class="bg-green-500 text-white px-6 py-3 rounded-full">Contactar</a>
+                            <a href="#fortalezas" class="bg-white/20 text-white px-6 py-3 rounded-full">Ver Fortalezas</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fortalezas -->
+        <section class="py-20 bg-white/95" id="fortalezas">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-gray-800 mb-4">Fortalezas del Teatro "Palabra Viva"</h2>
+                    <div class="bg-gray-100 rounded-2xl p-8 max-w-4xl mx-auto">
+                        <p class="text-xl italic text-gray-700 mb-2">"Porque mis pensamientos no son vuestros pensamientos"</p>
+                        <p class="text-lg text-blue-600 font-semibold">- Isaías 55:8</p>
+                    </div>
+                </div>
+                <div id="fortalezas-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+            </div>
+        </section>
+
+        <!-- Services -->
+        <section class="py-20 bg-gradient-to-r from-teal-400 to-cyan-500 text-white" id="servicios">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold mb-4">Servicios</h2>
+                    <p class="text-xl opacity-90">Gama completa de servicios para tu comunidad</p>
+                </div>
+                <div id="services-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+            </div>
+        </section>
+
+        <!-- Specialties -->
+        <section class="py-20 bg-white/95" id="especialidades">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-gray-800 mb-4">Especialidades</h2>
+                    <p class="text-xl text-gray-600">Áreas de experiencia en teatro bíblico</p>
+                </div>
+                <div id="specialties-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+            </div>
+        </section>
+
+        <!-- Contact -->
+        <section class="py-20 bg-gradient-to-r from-teal-500 to-cyan-600 text-white">
+            <div class="max-w-4xl mx-auto px-4 text-center">
+                <h2 class="text-4xl font-bold mb-6">Contacta con Ane Miren</h2>
+                <div class="bg-white/10 rounded-2xl p-8 mb-8">
+                    <p class="text-xl italic mb-2">"Vengan y vean"</p>
+                    <p class="opacity-80">- Juan 1:39</p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white/10 p-6 rounded-xl">
+                        <span class="text-4xl block mb-4">📱</span>
+                        <h3 class="text-xl font-bold mb-2">Teléfono / WhatsApp</h3>
+                        <p class="mb-4">Contacto directo inmediato</p>
+                        <a href="tel:+34600627593" class="text-cyan-200 font-bold">+34600627593</a>
+                    </div>
+                    <div class="bg-white/10 p-6 rounded-xl">
+                        <span class="text-4xl block mb-4">📧</span>
+                        <h3 class="text-xl font-bold mb-2">Email</h3>
+                        <p class="mb-4">Consulta detallada por correo</p>
+                        <a href="mailto:fontanellaproducciones@gmail.com" class="text-cyan-200 font-bold text-sm">fontanellaproducciones@gmail.com</a>
+                    </div>
+                    <div class="bg-white/10 p-6 rounded-xl">
+                        <span class="text-4xl block mb-4">💬</span>
+                        <h3 class="text-xl font-bold mb-2">WhatsApp Web</h3>
+                        <p class="mb-4">Chat directo desde ordenador</p>
+                        <a href="https://wa.me/34600627593" class="text-cyan-200 font-bold">Abrir Chat</a>
+                    </div>
+                </div>
+                <div class="bg-white/10 p-6 rounded-xl">
+                    <h3 class="text-2xl font-bold mb-4">Tiempo de Respuesta</h3>
+                    <p class="text-xl mb-2"><strong>Ane Miren responde personalmente en máximo 48 horas</strong></p>
+                    <p class="opacity-80">Urgencias pastorales: WhatsApp 9:00-21:00</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-16">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="grid md:grid-cols-4 gap-8 mb-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">Palabra Viva</h3>
+                        <p class="opacity-90 mb-2">Teatro Bíblico para la Nueva Evangelización</p>
+                        <p class="opacity-90">Con Ane Miren Lafuente</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">Contacto</h3>
+                        <p class="opacity-90 mb-1">fontanellaproducciones@gmail.com</p>
+                        <p class="opacity-90 mb-1">+34600627593</p>
+                        <p class="opacity-90">WhatsApp disponible</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">Servicios</h3>
+                        <p class="opacity-90 mb-1">• Talleres presenciales</p>
+                        <p class="opacity-90 mb-1">• Formación facilitadores</p>
+                        <p class="opacity-90 mb-1">• Obras personalizadas</p>
+                        <p class="opacity-90">• Asesoramiento pastoral</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">Especialidades</h3>
+                        <p class="opacity-90 mb-1">• Teatro litúrgico</p>
+                        <p class="opacity-90 mb-1">• Evangelización experiencial</p>
+                        <p class="opacity-90 mb-1">• Metodología Palabra Viva</p>
+                        <p class="opacity-90">• Construcción comunidad</p>
+                    </div>
+                </div>
+                <div class="border-t border-white/20 pt-8 text-center">
+                    <p class="mb-2">© 2025 Palabra Viva - Teatro Bíblico con Ane Miren Lafuente</p>
+                    <p class="italic opacity-80">"Que la Palabra de Dios sea verdaderamente viva" - Hebreos 4:12</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const CLOUDINARY_CONFIG = {
+            cloudName: 'dgqxttarn',
+            uploadPreset: 'palabra-viva-preset'  // Crear este preset en Cloudinary como "Unsigned"
+        };
+
+        const ADMIN_PASSWORD = 'PalabraViva2025';
+        let isAuthenticated = false;
+        let isEditMode = false;
+        let currentEditingItem = null;
+        let currentEditingSection = null;
+
+        console.log('CMS Palabra Viva iniciado con Cloudinary');
+        console.log('Cloud:', CLOUDINARY_CONFIG.cloudName);
+        console.log('Preset:', CLOUDINARY_CONFIG.uploadPreset);
+
+        let content = {
+            hero: {
+                title: "Palabra Viva",
+                verse: '"La Palabra se hizo carne y habitó entre nosotros"',
+                verseRef: "- Juan 1:14",
+                description: "Teatro Bíblico que transforma corazones, construye comunidad y hace que la Palabra de Dios sea verdaderamente viva"
+            },
+            aneMiren: {
+                title: "Ane Miren Lafuente",
+                subtitle: "Facilitadora Especializada en Teatro Bíblico para la Nueva Evangelización",
+                description: "Ane Miren aporta al proyecto \"Palabra Viva\" una combinación única de formación teatral profesional y profunda experiencia en evangelización.",
+                photoUrl: "https://i.postimg.cc/DfQ2cLX8/2025-09-21-20-06-48.jpg",
+                features: [
+                    {id: 1, icon: "🎯", title: "Dominio Técnico Teatral", description: "Herramientas dramáticas aplicadas a la evangelización"},
+                    {id: 2, icon: "⛪", title: "Experiencia Pastoral", description: "Comprende evangelización desde la práctica"},
+                    {id: 3, icon: "🔧", title: "Metodología Probada", description: "Técnicas perfeccionadas para teatro bíblico"},
+                    {id: 4, icon: "👥", title: "Capacidad Formativa", description: "Experta en formar no-actores"}
+                ]
+            },
+            fortalezas: [
+                {id: 1, title: "Evangelización Experiencial", description: "Los participantes no solo 'entienden' el Evangelio, sino que lo VIVEN desde dentro, creando una memoria emocional que transforma para toda la vida.", icon: "🎯", verse: "Lo que era desde el principio, lo que hemos oído - 1 Juan 1:1", documents: []},
+                {id: 2, title: "Inclusividad Total", description: "Para todos los niveles culturales, temperamentos y capacidades. Desde introvertidos hasta extrovertidos, todos encuentran su lugar.", icon: "🤝", verse: "No hay judío ni griego - Gálatas 3:28", documents: []},
+                {id: 3, title: "Construcción de Comunidad", description: "Los ensayos crean vínculos únicos y la representación final se convierte en celebración comunitaria.", icon: "👥", verse: "Y perseveraban en la comunión unos con otros - Hechos 2:42", documents: []},
+                {id: 4, title: "Formación Integral", description: "Desarrolla autoestima, comunicación, empatía y liderazgo mientras crecen espiritualmente sin presión.", icon: "🌱", verse: "Instruye al niño en su camino - Proverbios 22:6", documents: []},
+                {id: 5, title: "Flexibilidad Extrema", description: "Adaptable desde lecturas dramatizadas (30 min) hasta obras completas (2 meses).", icon: "⚡", verse: "A todos me he hecho de todo - 1 Corintios 9:22", documents: []},
+                {id: 6, title: "Pedagogía de la Encarnación", description: "Como Jesús se hizo hombre, la Palabra se 'encarna' en gestos y experiencias humanas auténticas.", icon: "🔥", verse: "Y aquel Verbo fue hecho carne - Juan 1:14", documents: []}
+            ],
+            services: [
+                {id: 1, title: "Talleres presenciales", description: "Formación directa y personalizada en tu parroquia o comunidad", icon: "🎭", details: "Talleres adaptados a diferentes niveles y necesidades pastorales", documents: []},
+                {id: 2, title: "Formación de facilitadores", description: "Capacitación integral para formar multiplicadores de la metodología", icon: "👥", details: "Programa completo para formar facilitadores locales", documents: []},
+                {id: 3, title: "Obras personalizadas", description: "Adaptaciones teatrales específicas según el tiempo litúrgico o necesidades", icon: "📝", details: "Obras creadas específicamente para tu comunidad y contexto", documents: []},
+                {id: 4, title: "Asesoramiento pastoral", description: "Orientación especializada para integrar el teatro en la pastoral", icon: "⛪", details: "Consultoría para implementar teatro bíblico en actividades pastorales", documents: []},
+                {id: 5, title: "Recursos completos", description: "Materiales, guiones y herramientas para implementar la metodología", icon: "📚", details: "Kit completo de recursos y materiales pedagógicos", documents: []}
+            ],
+            specialties: [
+                {id: 1, title: "Teatro bíblico por tiempo litúrgico", description: "Obras adaptadas a Adviento, Cuaresma, Pascua y tiempo ordinario", icon: "📅", details: "Repertorio completo organizado por calendario litúrgico", documents: []},
+                {id: 2, title: "Evangelización experiencial", description: "Metodología que permite vivir el Evangelio desde dentro", icon: "❤️", details: "Enfoque pedagógico basado en la experiencia transformadora", documents: []},
+                {id: 3, title: "Formación teatral para no-actores", description: "Técnicas accesibles para personas sin experiencia teatral", icon: "🌱", details: "Metodología inclusiva para todos los niveles de experiencia", documents: []},
+                {id: 4, title: "Metodología Palabra Viva", description: "Sistema pedagógico probado de teatro bíblico transformador", icon: "⚡", details: "Metodología exclusiva desarrollada por Ane Miren Lafuente", documents: []},
+                {id: 5, title: "Construcción de comunidad", description: "El teatro como herramienta de cohesión y crecimiento comunitario", icon: "🤝", details: "Enfoque comunitario que fortalece vínculos y fe compartida", documents: []}
+            ]
+        };
+
+        function saveToLocalStorage() {
+            localStorage.setItem('palabraVivaContent', JSON.stringify(content));
+            console.log('Contenido guardado en LocalStorage');
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('palabraVivaContent');
+            if (saved) {
+                content = JSON.parse(saved);
+                console.log('Contenido cargado desde LocalStorage');
+                return true;
+            }
+            return false;
+        }
+
+        function showNotification(msg) {
+            const n = document.getElementById('notification');
+            if (n) {
+                n.textContent = msg;
+                n.style.display = 'block';
+                setTimeout(() => n.style.display = 'none', 3000);
+            }
+        }
+
+        function showUploadingOverlay(msg) {
+            const o = document.createElement('div');
+            o.id = 'uploading-overlay';
+            o.className = 'uploading-overlay';
+            o.innerHTML = `<div class="bg-white rounded-lg p-8 text-center shadow-2xl"><div class="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div><p class="text-xl font-bold">${msg}</p></div>`;
+            document.body.appendChild(o);
+        }
+        
+        function hideUploadingOverlay() {
+            const o = document.getElementById('uploading-overlay');
+            if (o) o.remove();
+        }
+        
+        function uploadToCloudinary(file, callback) {
+            showUploadingOverlay('Subiendo a Cloudinary...');
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+            const resourceType = file.type.startsWith('image/') ? 'image' : file.type === 'application/pdf' ? 'image' : 'raw';
+            
+            const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/${resourceType}/upload`;
+            console.log('Subiendo a:', url);
+            console.log('Preset:', CLOUDINARY_CONFIG.uploadPreset);
+            console.log('Archivo:', file.name, file.type, file.size);
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => {
+                console.log('Response status:', r.status);
+                return r.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                hideUploadingOverlay();
+                
+                if (data.error) {
+                    console.error('Error de Cloudinary:', data.error);
+                    alert(`ERROR CLOUDINARY:\n\n${data.error.message}\n\nVerifica:\n1. Cloud Name: ${CLOUDINARY_CONFIG.cloudName}\n2. Upload Preset: ${CLOUDINARY_CONFIG.uploadPreset}\n3. Que el preset sea "Unsigned"`);
+                    return;
+                }
+                
+                if (data.secure_url) {
+                    const fileData = {name: file.name, url: data.secure_url, publicId: data.public_id, type: file.type, size: file.size, id: Date.now(), cloudinary: true};
+                    showNotification('Archivo subido a Cloudinary');
+                    callback(data.secure_url, fileData);
+                } else {
+                    throw new Error('No se recibió URL de Cloudinary');
+                }
+            })
+            .catch(err => {
+                hideUploadingOverlay();
+                console.error('Error completo:', err);
+                alert(`ERROR:\n\n${err.message}\n\nRevisa la consola (F12) para más detalles`);
+                showNotification('Error subiendo archivo');
+            });
+        }
+
+        function uploadFile(callback) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*,application/pdf,.doc,.docx';
+            input.style.display = 'none';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 10000000) {
+                    showNotification('Archivo muy grande (max 10MB)');
+                    return;
+                }
+                uploadToCloudinary(file, callback);
+            };
+            document.body.appendChild(input);
+            input.click();
+            document.body.removeChild(input);
+        }
+
+        function renderContent() {
+            renderHero();
+            renderAneMiren();
+            renderFortalezas();
+            renderServices();
+            renderSpecialties();
+        }
+
+        function manualSave() {
+            saveToLocalStorage();
+            showNotification('✅ Todos los cambios guardados correctamente');
+        }
+
+        function renderHero() {
+            document.getElementById('hero-title').textContent = content.hero.title;
+            document.getElementById('hero-verse').textContent = content.hero.verse;
+            document.getElementById('hero-verse-ref').textContent = content.hero.verseRef;
+            document.getElementById('hero-description').textContent = content.hero.description;
+        }
+
+        function showHeroModal() {
+            document.getElementById('edit-hero-title').value = content.hero.title;
+            document.getElementById('edit-hero-verse').value = content.hero.verse;
+            document.getElementById('edit-hero-verse-ref').value = content.hero.verseRef;
+            document.getElementById('edit-hero-description').value = content.hero.description;
+            document.getElementById('edit-hero-modal').style.display = 'flex';
+        }
+
+        function hideHeroModal() {
+            document.getElementById('edit-hero-modal').style.display = 'none';
+        }
+
+        function saveHeroChanges() {
+            content.hero.title = document.getElementById('edit-hero-title').value;
+            content.hero.verse = document.getElementById('edit-hero-verse').value;
+            content.hero.verseRef = document.getElementById('edit-hero-verse-ref').value;
+            content.hero.description = document.getElementById('edit-hero-description').value;
+            hideHeroModal();
+            renderHero();
+            showNotification('Sección inicio actualizada');
+        }
+
+        function renderAneMiren() {
+            document.getElementById('am-title').textContent = content.aneMiren.title;
+            document.getElementById('am-subtitle').textContent = content.aneMiren.subtitle;
+            document.getElementById('am-description').textContent = content.aneMiren.description;
+            document.getElementById('ane-miren-photo').src = content.aneMiren.photoUrl;
+            
+            document.getElementById('am-features-grid').innerHTML = content.aneMiren.features.map(f => `
+                <div class="bg-white/10 p-4 rounded-lg">
+                    <span class="text-2xl mb-2 block">${f.icon}</span>
+                    <h4 class="font-bold mb-2">${f.title}</h4>
+                    <p class="text-sm opacity-90">${f.description}</p>
+                </div>
+            `).join('');
+            
+            const photoBtn = document.getElementById('change-photo-btn');
+            if (photoBtn) photoBtn.style.display = isEditMode ? 'block' : 'none';
+        }
+
+        function showAneMirenModal() {
+            document.getElementById('edit-am-title').value = content.aneMiren.title;
+            document.getElementById('edit-am-subtitle').value = content.aneMiren.subtitle;
+            document.getElementById('edit-am-description').value = content.aneMiren.description;
+            renderAneMirenFeatures();
+            document.getElementById('edit-anemiren-modal').style.display = 'flex';
+        }
+
+        function hideAneMirenModal() {
+            document.getElementById('edit-anemiren-modal').style.display = 'none';
+        }
+
+        function renderAneMirenFeatures() {
+            document.getElementById('am-features-container').innerHTML = content.aneMiren.features.map((f, i) => `
+                <div class="p-4 border rounded bg-white">
+                    <div class="grid grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Icono:</label>
+                            <input type="text" class="w-full p-2 border rounded text-sm feature-icon" data-index="${i}" value="${f.icon}">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-xs font-bold mb-1">Título:</label>
+                            <input type="text" class="w-full p-2 border rounded text-sm feature-title" data-index="${i}" value="${f.title}">
+                        </div>
+                        <div class="flex items-end">
+                            <button class="remove-feature-btn bg-red-500 text-white px-2 py-1 rounded text-sm" data-index="${i}">Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <label class="block text-xs font-bold mb-1">Descripción:</label>
+                        <textarea class="w-full p-2 border rounded text-sm h-16 feature-desc" data-index="${i}">${f.description}</textarea>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.feature-icon').forEach(el => {
+                el.addEventListener('change', e => {
+                    content.aneMiren.features[e.target.dataset.index].icon = e.target.value;
+                });
+            });
+            document.querySelectorAll('.feature-title').forEach(el => {
+                el.addEventListener('change', e => {
+                    content.aneMiren.features[e.target.dataset.index].title = e.target.value;
+                });
+            });
+            document.querySelectorAll('.feature-desc').forEach(el => {
+                el.addEventListener('change', e => {
+                    content.aneMiren.features[e.target.dataset.index].description = e.target.value;
+                });
+            });
+            document.querySelectorAll('.remove-feature-btn').forEach(el => {
+                el.addEventListener('click', e => {
+                    if (confirm('¿Eliminar característica?')) {
+                        content.aneMiren.features.splice(e.target.dataset.index, 1);
+                        renderAneMirenFeatures();
+                    }
+                });
+            });
+        }
+
+        function addAneMirenFeature() {
+            content.aneMiren.features.push({id: Date.now(), icon: '🎭', title: 'Nueva', description: 'Descripción'});
+            renderAneMirenFeatures();
+        }
+
+        function saveAneMirenChanges() {
+            content.aneMiren.title = document.getElementById('edit-am-title').value;
+            content.aneMiren.subtitle = document.getElementById('edit-am-subtitle').value;
+            content.aneMiren.description = document.getElementById('edit-am-description').value;
+            hideAneMirenModal();
+            renderAneMiren();
+            showNotification('Información actualizada');
+        }
+
+        function changePhoto() {
+            uploadFile((url) => {
+                content.aneMiren.photoUrl = url;
+                document.getElementById('ane-miren-photo').src = url;
+                showNotification('Foto actualizada');
+            });
+        }
+
+        function renderFortalezas() {
+            document.getElementById('fortalezas-grid').innerHTML = content.fortalezas.map(item => `
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <div class="text-4xl mb-4">${item.icon}</div>
+                    <h3 class="text-xl font-bold mb-3">${item.title}</h3>
+                    <p class="text-gray-600 mb-4">${item.description}</p>
+                    <div class="bg-gray-50 p-3 rounded border-l-4 border-purple-500">
+                        <p class="text-sm italic text-gray-700">${item.verse}</p>
+                    </div>
+                    ${item.documents.length > 0 ? `
+                        <div class="mt-4 p-4 bg-gray-50 rounded">
+                            <h4 class="font-semibold mb-3">Documentos (${item.documents.length})</h4>
+                            ${item.documents.map(doc => `
+                                <div class="flex justify-between items-center bg-white p-2 rounded mb-2 border">
+                                    <span class="text-sm">${doc.name}</span>
+                                    <div class="flex gap-2">
+                                        <button class="view-doc-btn bg-green-500 text-white px-2 py-1 rounded text-xs" data-url="${doc.url}" data-name="${doc.name}">Ver</button>
+                                        ${isEditMode ? `<button class="remove-doc-btn bg-red-500 text-white px-2 py-1 rounded text-xs" data-section="fortalezas" data-item-id="${item.id}" data-doc-id="${doc.id}">Eliminar</button>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    ${isEditMode ? `
+                        <div class="mt-4 p-3 bg-blue-50 rounded">
+                            <button class="add-doc-btn bg-blue-500 text-white px-3 py-1 rounded text-sm" data-section="fortalezas" data-id="${item.id}">Subir Documento</button>
+                            <button class="edit-item-btn bg-green-500 text-white px-3 py-1 rounded text-sm ml-2" data-section="fortalezas" data-id="${item.id}">Editar</button>
+                            <button class="delete-item-btn bg-red-500 text-white px-3 py-1 rounded text-sm ml-2" data-section="fortalezas" data-id="${item.id}">Eliminar</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+            addEventListeners();
+        }
+
+        function renderServices() {
+            document.getElementById('services-grid').innerHTML = content.services.map(item => `
+                <div class="bg-white/10 p-6 rounded-xl border border-white/20">
+                    <div class="text-4xl mb-4">${item.icon}</div>
+                    <h3 class="text-xl font-bold mb-2">${item.title}</h3>
+                    <p class="opacity-90 mb-3">${item.description}</p>
+                    ${item.details ? `<div class="text-sm opacity-75 bg-white/10 p-3 rounded mb-3">${item.details}</div>` : ''}
+                    ${item.documents.length > 0 ? `
+                        <div class="mt-4 p-4 bg-white/10 rounded">
+                            <h4 class="font-semibold mb-3">Documentos (${item.documents.length})</h4>
+                            ${item.documents.map(doc => `
+                                <div class="flex justify-between items-center bg-white/20 p-2 rounded mb-2">
+                                    <span class="text-sm">${doc.name}</span>
+                                    <div class="flex gap-2">
+                                        <button class="view-doc-btn bg-green-500 text-white px-2 py-1 rounded text-xs" data-url="${doc.url}" data-name="${doc.name}">Ver</button>
+                                        ${isEditMode ? `<button class="remove-doc-btn bg-red-500 text-white px-2 py-1 rounded text-xs" data-section="services" data-item-id="${item.id}" data-doc-id="${doc.id}">Eliminar</button>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    ${isEditMode ? `
+                        <div class="mt-4 p-3 bg-white/10 rounded">
+                            <button class="add-doc-btn bg-blue-500 text-white px-3 py-1 rounded text-sm" data-section="services" data-id="${item.id}">Subir Documento</button>
+                            <button class="edit-item-btn bg-green-500 text-white px-3 py-1 rounded text-sm ml-2" data-section="services" data-id="${item.id}">Editar</button>
+                            <button class="delete-item-btn bg-red-500 text-white px-3 py-1 rounded text-sm ml-2" data-section="services" data-id="${item.id}">Eliminar</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+            addEventListeners();
+        }
+
+        function renderSpecialties() {
+            document.getElementById('specialties-grid').innerHTML = content.specialties.map(item => `
+                <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <div class="text-4xl mb-4">${item.icon}</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">${item.title}</h3>
+                    <p class="text-gray-600 mb-3">${item.description}</p>
+                    ${item.details ? `<div class="text-sm text-gray-500 bg-gray-50 p-3 rounded mb-3">${item.details}</div>` : ''}
+                    ${item.documents.length > 0 ? `
+                        <div class="mt-4 p-4 bg-gray-50 rounded">
+                            <h4 class="font-semibold text-gray-700 mb-3">Documentos (${item.documents.length})</h4>
+                            ${item.documents.map(doc => `
+                                <div class="flex justify-between items-center bg-white p-2 rounded mb-2 border">
+                                    <span class="text-sm">${doc.name}</span>
+                                    <div class="flex gap-2">
+                                        <button class="view-doc-btn bg-green-500 text-white px-2 py-1 rounded text-xs" data-url="${doc.url}" data-name="${doc.name}">Ver</button>
+                                        ${isEditMode ? `<button class="remove-doc-btn bg-red-500 text-white px-2 py-1 rounded text-xs" data-section="specialties" data-item-id="${item.id}" data-doc-id="${doc.id}">Eliminar</button>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    ${isEditMode ? `
+                        <div class="mt-4 p-3 bg-blue-50 rounded">
+                            <button class="add-doc-btn bg-blue-500 text-white px-3 py-1 rounded text-sm" data-section="specialties" data-id="${item.id}">Subir Documento</button>
+                            <button class="edit-item-btn bg-green-500 text-white px-3 py-1 rounded text-sm ml-2" data-section="specialties" data-id="${item.id}">Editar</button>
+                            <button class="delete-item-btn bg-red-500 text-white px-3 py-1 rounded text-sm ml-2" data-section="specialties" data-id="${item.id}">Eliminar</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+            addEventListeners();
+        }
+
+        function renderContent() {
+            renderFortalezas();
+            renderServices();
+            renderSpecialties();
+        }
+
+        function showEditModal(section, itemId) {
+            const modal = document.getElementById('edit-modal');
+            const verseContainer = document.getElementById('edit-verse-container');
+            const detailsContainer = document.getElementById('edit-details-container');
+            currentEditingSection = section;
+            currentEditingItem = itemId;
+            
+            if (section === 'fortalezas') {
+                verseContainer.style.display = 'block';
+                detailsContainer.style.display = 'none';
+            } else {
+                verseContainer.style.display = 'none';
+                detailsContainer.style.display = 'block';
+            }
+            
+            if (itemId) {
+                const item = content[section].find(i => i.id == itemId);
+                if (item) {
+                    document.getElementById('edit-icon').value = item.icon || '';
+                    document.getElementById('edit-title').value = item.title || '';
+                    document.getElementById('edit-description').value = item.description || '';
+                    document.getElementById('edit-verse').value = item.verse || '';
+                    document.getElementById('edit-details').value = item.details || '';
+                }
+            } else {
+                document.getElementById('edit-icon').value = '';
+                document.getElementById('edit-title').value = '';
+                document.getElementById('edit-description').value = '';
+                document.getElementById('edit-verse').value = '';
+                document.getElementById('edit-details').value = '';
+            }
+            
+            modal.style.display = 'flex';
+        }
+
+        function hideEditModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+            currentEditingItem = null;
+            currentEditingSection = null;
+        }
+
+        function saveEditedItem(e) {
+            e.preventDefault();
+            if (!currentEditingSection) return;
+            
+            const formData = {
+                icon: document.getElementById('edit-icon').value,
+                title: document.getElementById('edit-title').value.trim(),
+                description: document.getElementById('edit-description').value.trim(),
+                verse: document.getElementById('edit-verse').value.trim(),
+                details: document.getElementById('edit-details').value.trim()
+            };
+            
+            if (!formData.title || !formData.description) {
+                showNotification('Completa título y descripción');
+                return;
+            }
+            
+            if (currentEditingItem) {
+                const idx = content[currentEditingSection].findIndex(item => item.id == currentEditingItem);
+                if (idx !== -1) {
+                    content[currentEditingSection][idx] = {...content[currentEditingSection][idx], ...formData};
+                    showNotification('Elemento actualizado');
+                }
+            } else {
+                content[currentEditingSection].push({id: Date.now(), ...formData, documents: []});
+                showNotification('Elemento creado');
+            }
+            
+            hideEditModal();
+            renderContent();
+        }
+
+        function deleteItem(section, itemId) {
+            if (!confirm('¿Eliminar este elemento?')) return;
+            const idx = content[section].findIndex(item => item.id == itemId);
+            if (idx !== -1) {
+                content[section].splice(idx, 1);
+                showNotification('Elemento eliminado');
+                renderContent();
+            }
+        }
+
+        function addDocument(section, itemId) {
+            uploadFile((fileUrl, fileData) => {
+                const idx = content[section].findIndex(item => item.id == itemId);
+                if (idx !== -1) {
+                    content[section][idx].documents.push(fileData);
+                    renderContent();
+                    showNotification('Documento agregado');
+                }
+            });
+        }
+
+        function removeDocument(section, itemId, docId) {
+            if (!confirm('¿Eliminar este documento?')) return;
+            const idx = content[section].findIndex(item => item.id == itemId);
+            if (idx !== -1) {
+                content[section][idx].documents = content[section][idx].documents.filter(doc => doc.id != docId);
+                renderContent();
+                showNotification('Documento eliminado');
+            }
+        }
+
+        function viewDocument(url) {
+            window.open(url, '_blank');
+        }
+
+        function showLoginModal() {
+            document.getElementById('login-modal').style.display = 'flex';
+            document.getElementById('admin-password').focus();
+        }
+
+        function hideLoginModal() {
+            document.getElementById('login-modal').style.display = 'none';
+            document.getElementById('admin-password').value = '';
+            document.getElementById('login-error').style.display = 'none';
+        }
+
+        function checkPassword() {
+            const password = document.getElementById('admin-password').value;
+            if (password === ADMIN_PASSWORD) {
+                isAuthenticated = true;
+                hideLoginModal();
+                toggleEditMode();
+                showNotification('Acceso concedido');
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+                document.getElementById('admin-password').value = '';
+            }
+        }
+
+        function toggleEditMode() {
+            if (!isAuthenticated && !isEditMode) {
+                showLoginModal();
+                return;
+            }
+            
+            isEditMode = !isEditMode;
+            const toolbar = document.getElementById('cms-toolbar');
+            const editBtn = document.getElementById('edit-mode-btn');
+            const app = document.getElementById('app');
+            
+            if (isEditMode) {
+                toolbar.style.display = 'block';
+                editBtn.textContent = 'Salir';
+                editBtn.className = 'bg-red-500 text-white px-4 py-2 rounded';
+                app.style.paddingTop = '80px';
+            } else {
+                toolbar.style.display = 'none';
+                editBtn.textContent = 'Editar';
+                editBtn.className = 'bg-blue-500 text-white px-4 py-2 rounded';
+                app.style.paddingTop = '0';
+                isAuthenticated = false;
+            }
+            
+            renderContent();
+        }
+
+        function testSystem() {
+            console.log('=== TEST CLOUDINARY ===');
+            console.log('Cloud:', CLOUDINARY_CONFIG.cloudName);
+            console.log('Preset:', CLOUDINARY_CONFIG.uploadPreset);
+            showNotification('Iniciando prueba...');
+            uploadFile((url, data) => {
+                console.log('Prueba OK:', data);
+                alert(`CLOUDINARY FUNCIONANDO\n\nArchivo: ${data.name}\nURL: ${url}`);
+            });
+        }
+
+        function exportContent() {
+            const dataStr = JSON.stringify(content, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `palabra-viva-backup-${Date.now()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showNotification('Contenido exportado correctamente');
+        }
+
+        function importContent() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+            input.style.display = 'none';
+            
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = evt => {
+                    try {
+                        const imported = JSON.parse(evt.target.result);
+                        if (confirm('¿Importar este contenido? Se reemplazará todo el contenido actual.')) {
+                            content = imported;
+                            renderContent();
+                            showNotification('Contenido importado correctamente');
+                        }
+                    } catch (err) {
+                        alert('Error al importar archivo: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            document.body.appendChild(input);
+            input.click();
+            document.body.removeChild(input);
+        }
+
+        function addEventListeners() {
+            document.querySelectorAll('.add-doc-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (!isEditMode) return;
+                    addDocument(this.dataset.section, this.dataset.id);
+                });
+            });
+            
+            document.querySelectorAll('.view-doc-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    viewDocument(this.dataset.url);
+                });
+            });
+            
+            document.querySelectorAll('.edit-item-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (!isEditMode) return;
+                    showEditModal(this.dataset.section, this.dataset.id);
+                });
+            });
+            
+            document.querySelectorAll('.delete-item-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (!isEditMode) return;
+                    deleteItem(this.dataset.section, this.dataset.id);
+                });
+            });
+            
+            document.querySelectorAll('.remove-doc-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (!isEditMode) return;
+                    removeDocument(this.dataset.section, this.dataset.itemId, this.dataset.docId);
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Cargando CMS con Cloudinary...');
+            
+            // Cargar datos guardados
+            loadFromLocalStorage();
+            renderContent();
+            
+            // Botones principales
+            document.getElementById('edit-mode-btn').addEventListener('click', toggleEditMode);
+            document.getElementById('save-all-btn').addEventListener('click', () => {
+                console.log('Guardando cambios...');
+                manualSave();
+            });
+            document.getElementById('export-btn').addEventListener('click', () => {
+                console.log('Exportando...');
+                exportContent();
+            });
+            document.getElementById('import-btn').addEventListener('click', () => {
+                console.log('Importando...');
+                importContent();
+            });
+            document.getElementById('test-system-btn').addEventListener('click', testSystem);
+            document.getElementById('cancel-btn').addEventListener('click', toggleEditMode);
+            
+            // Login
+            document.getElementById('login-btn').addEventListener('click', checkPassword);
+            document.getElementById('cancel-login-btn').addEventListener('click', hideLoginModal);
+            document.getElementById('admin-password').addEventListener('keypress', e => {
+                if (e.key === 'Enter') checkPassword();
+            });
+            
+            // Edit modal
+            document.getElementById('edit-form').addEventListener('submit', saveEditedItem);
+            document.getElementById('cancel-edit-btn').addEventListener('click', hideEditModal);
+            
+            // Agregar elementos
+            document.getElementById('add-fortaleza-btn').addEventListener('click', () => showEditModal('fortalezas'));
+            document.getElementById('add-service-btn').addEventListener('click', () => showEditModal('services'));
+            document.getElementById('add-specialty-btn').addEventListener('click', () => showEditModal('specialties'));
+            
+            // Hero
+            document.getElementById('edit-hero-btn').addEventListener('click', showHeroModal);
+            document.getElementById('save-hero-btn').addEventListener('click', saveHeroChanges);
+            document.getElementById('cancel-hero-btn').addEventListener('click', hideHeroModal);
+            
+            // Ane Miren
+            document.getElementById('edit-anemiren-btn').addEventListener('click', () => {
+                console.log('Click en editar Ane Miren');
+                showAneMirenModal();
+            });
+            document.getElementById('save-anemiren-btn').addEventListener('click', saveAneMirenChanges);
+            document.getElementById('cancel-anemiren-btn').addEventListener('click', hideAneMirenModal);
+            document.getElementById('add-am-feature-btn').addEventListener('click', addAneMirenFeature);
+            document.getElementById('change-photo-btn').addEventListener('click', () => {
+                console.log('Click en cambiar foto');
+                changePhoto();
+            });
+            
+            // Cerrar modales clickeando fuera
+            document.getElementById('login-modal').addEventListener('click', e => {
+                if (e.target === document.getElementById('login-modal')) hideLoginModal();
+            });
+            document.getElementById('edit-modal').addEventListener('click', e => {
+                if (e.target === document.getElementById('edit-modal')) hideEditModal();
+            });
+            document.getElementById('edit-anemiren-modal').addEventListener('click', e => {
+                if (e.target === document.getElementById('edit-anemiren-modal')) hideAneMirenModal();
+            });
+            
+            console.log('CMS cargado correctamente');
+        });
+    </script>
+</body>
+</html>
